@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Servidor — Planilha Rápida</title>
+  <meta name="description" content="Página inicial do servidor com uma planilha simples para digitar e visualizar dados." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #10162a;
+      --muted: #7781a5;
+      --text: #e6e9f5;
+      --accent: #5b8cff;
+      --grid-border: #27304a;
+      --input-bg: #0c1224;
+      --input-text: #e8ecfa;
+      --input-placeholder: #8b94b3;
+      --ring: 0 0 0 2px rgba(91, 140, 255, 0.45);
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f7f8fc;
+        --card: #ffffff;
+        --muted: #637087;
+        --text: #111827;
+        --accent: #3b82f6;
+        --grid-border: #e5e7ef;
+        --input-bg: #ffffff;
+        --input-text: #111827;
+        --input-placeholder: #9aa5b4;
+        --ring: 0 0 0 2px rgba(59, 130, 246, 0.35);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 700px at 10% -10%, rgba(91, 140, 255, 0.15), transparent 60%),
+                  radial-gradient(1000px 600px at 110% 10%, rgba(91, 255, 197, 0.08), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+    }
+
+    .page {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 20px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px clamp(16px, 3vw, 36px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .brand .logo {
+      width: 36px; height: 36px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), #8aa8ff);
+      box-shadow: 0 6px 22px rgba(91, 140, 255, 0.35);
+    }
+
+    .actions {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .chip {
+      padding: 8px 12px; border-radius: 999px; border: 1px solid var(--grid-border);
+      background: color-mix(in oklab, var(--card) 85%, black 15%);
+      color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: .3px;
+      user-select: none;
+    }
+
+    .intro {
+      padding: 0 clamp(16px, 3vw, 36px);
+      margin-bottom: -4px;
+    }
+
+    .intro h1 {
+      margin: 0 0 8px;
+      font-size: clamp(22px, 3.2vw, 32px);
+      line-height: 1.2;
+    }
+
+    .intro p { margin: 0; color: var(--muted); }
+
+    .sheet-wrap {
+      padding: 0 clamp(16px, 3vw, 36px) clamp(20px, 3vw, 32px);
+    }
+
+    .sheet-card {
+      background: var(--card);
+      border: 1px solid var(--grid-border);
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.25);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--grid-border);
+      background: linear-gradient(180deg, color-mix(in oklab, var(--card) 88%, white 12%), var(--card));
+    }
+    .toolbar .left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .btn {
+      border: 1px solid var(--grid-border); border-radius: 10px; padding: 8px 12px;
+      background: var(--input-bg); color: var(--text); font-weight: 600; font-size: 12px; letter-spacing: .2px;
+      cursor: default; /* botões decorativos, sem função */
+      opacity: .85;
+    }
+
+    .grid-scroll {
+      overflow: auto;
+      max-height: calc(100vh - 260px);
+      scrollbar-width: thin;
+    }
+
+    /* Planilha */
+    .sheet {
+      display: grid;
+      grid-template-columns: 64px repeat(10, minmax(160px, 1fr));
+      min-width: 100%;
+      border-bottom: 1px solid var(--grid-border);
+    }
+
+    .cell, .header, .rowhead {
+      border-right: 1px solid var(--grid-border);
+      border-top: 1px solid var(--grid-border);
+      min-height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      background: var(--card);
+    }
+
+    .header {
+      position: sticky; top: 0; z-index: 2;
+      background: linear-gradient(180deg, color-mix(in oklab, var(--card) 95%, white 5%), var(--card));
+      font-weight: 700; color: var(--muted);
+    }
+
+    .rowhead {
+      position: sticky; left: 0; z-index: 1;
+      background: linear-gradient(90deg, color-mix(in oklab, var(--card) 95%, white 5%), var(--card));
+      font-weight: 700; color: var(--muted);
+    }
+
+    .cell input {
+      width: 100%; height: 100%;
+      border: none; outline: none; padding: 10px 12px;
+      background: var(--input-bg); color: var(--input-text);
+      font: inherit; text-align: left;
+    }
+
+    .cell input::placeholder { color: var(--input-placeholder); }
+    .cell input:focus { box-shadow: var(--ring); position: relative; z-index: 5; }
+
+    footer {
+      padding: 16px clamp(16px, 3vw, 36px) 40px; color: var(--muted); font-size: 12px;
+    }
+
+    /* Responsivo */
+    @media (max-width: 900px) {
+      .sheet { grid-template-columns: 48px repeat(6, minmax(120px, 1fr)); }
+      .grid-scroll { max-height: calc(100vh - 240px); }
+    }
+
+    @media (max-width: 600px) {
+      .sheet { grid-template-columns: 40px repeat(4, minmax(110px, 1fr)); }
+      .cell, .header, .rowhead { min-height: 40px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="brand" aria-label="Identidade do servidor">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div style="font-size: 14px; color: var(--muted); font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase;">Servidor</div>
+          <div style="font-size: 18px; font-weight: 700;">Planilha Rápida</div>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="chip">Somente digitação • sem fórmulas</div>
+        <div class="chip">Responsiva</div>
+        <div class="chip">Dark/Light automático</div>
+      </div>
+    </header>
+
+    <section class="intro">
+      <h1>Área de Anotações Tipo Planilha</h1>
+      <p>Use os campos abaixo para digitar e visualizar dados de forma simples. Não há cálculos, armazenamento ou envio automático.</p>
+    </section>
+
+    <section class="sheet-wrap" aria-label="Planilha">
+      <div class="sheet-card" role="region" aria-label="Planilha de entradas">
+        <div class="toolbar">
+          <div class="left">
+            <div class="btn" aria-hidden="true">Arquivo</div>
+            <div class="btn" aria-hidden="true">Editar</div>
+            <div class="btn" aria-hidden="true">Exibir</div>
+          </div>
+          <div class="btn" aria-hidden="true">Apenas visual • sem funções</div>
+        </div>
+
+        <div class="grid-scroll">
+          <div class="sheet" role="table" aria-label="Tabela editável sem cálculos">
+            <!-- Cabeçalho das colunas (A…J) -->
+            <div class="rowhead header" role="columnheader" aria-label="#"></div>
+            <div class="header" role="columnheader">A</div>
+            <div class="header" role="columnheader">B</div>
+            <div class="header" role="columnheader">C</div>
+            <div class="header" role="columnheader">D</div>
+            <div class="header" role="columnheader">E</div>
+            <div class="header" role="columnheader">F</div>
+            <div class="header" role="columnheader">G</div>
+            <div class="header" role="columnheader">H</div>
+            <div class="header" role="columnheader">I</div>
+            <div class="header" role="columnheader">J</div>
+
+            <!-- 20 linhas -->
+            <!-- Geradas manualmente para manter tudo em HTML puro sem JS -->
+            <!-- Linha 1 -->
+            <div class="rowhead" role="rowheader">1</div>
+            <div class="cell"><input aria-label="A1" placeholder="A1" /></div>
+            <div class="cell"><input aria-label="B1" placeholder="B1" /></div>
+            <div class="cell"><input aria-label="C1" placeholder="C1" /></div>
+            <div class="cell"><input aria-label="D1" placeholder="D1" /></div>
+            <div class="cell"><input aria-label="E1" placeholder="E1" /></div>
+            <div class="cell"><input aria-label="F1" placeholder="F1" /></div>
+            <div class="cell"><input aria-label="G1" placeholder="G1" /></div>
+            <div class="cell"><input aria-label="H1" placeholder="H1" /></div>
+            <div class="cell"><input aria-label="I1" placeholder="I1" /></div>
+            <div class="cell"><input aria-label="J1" placeholder="J1" /></div>
+            <!-- Linha 2 -->
+            <div class="rowhead" role="rowheader">2</div>
+            <div class="cell"><input aria-label="A2" placeholder="A2" /></div>
+            <div class="cell"><input aria-label="B2" placeholder="B2" /></div>
+            <div class="cell"><input aria-label="C2" placeholder="C2" /></div>
+            <div class="cell"><input aria-label="D2" placeholder="D2" /></div>
+            <div class="cell"><input aria-label="E2" placeholder="E2" /></div>
+            <div class="cell"><input aria-label="F2" placeholder="F2" /></div>
+            <div class="cell"><input aria-label="G2" placeholder="G2" /></div>
+            <div class="cell"><input aria-label="H2" placeholder="H2" /></div>
+            <div class="cell"><input aria-label="I2" placeholder="I2" /></div>
+            <div class="cell"><input aria-label="J2" placeholder="J2" /></div>
+            <!-- Linha 3 -->
+            <div class="rowhead" role="rowheader">3</div>
+            <div class="cell"><input aria-label="A3" placeholder="A3" /></div>
+            <div class="cell"><input aria-label="B3" placeholder="B3" /></div>
+            <div class="cell"><input aria-label="C3" placeholder="C3" /></div>
+            <div class="cell"><input aria-label="D3" placeholder="D3" /></div>
+            <div class="cell"><input aria-label="E3" placeholder="E3" /></div>
+            <div class="cell"><input aria-label="F3" placeholder="F3" /></div>
+            <div class="cell"><input aria-label="G3" placeholder="G3" /></div>
+            <div class="cell"><input aria-label="H3" placeholder="H3" /></div>
+            <div class="cell"><input aria-label="I3" placeholder="I3" /></div>
+            <div class="cell"><input aria-label="J3" placeholder="J3" /></div>
+            <!-- Linha 4 -->
+            <div class="rowhead" role="rowheader">4</div>
+            <div class="cell"><input aria-label="A4" placeholder="A4" /></div>
+            <div class="cell"><input aria-label="B4" placeholder="B4" /></div>
+            <div class="cell"><input aria-label="C4" placeholder="C4" /></div>
+            <div class="cell"><input aria-label="D4" placeholder="D4" /></div>
+            <div class="cell"><input aria-label="E4" placeholder="E4" /></div>
+            <div class="cell"><input aria-label="F4" placeholder="F4" /></div>
+            <div class="cell"><input aria-label="G4" placeholder="G4" /></div>
+            <div class="cell"><input aria-label="H4" placeholder="H4" /></div>
+            <div class="cell"><input aria-label="I4" placeholder="I4" /></div>
+            <div class="cell"><input aria-label="J4" placeholder="J4" /></div>
+            <!-- Linha 5 -->
+            <div class="rowhead" role="rowheader">5</div>
+            <div class="cell"><input aria-label="A5" placeholder="A5" /></div>
+            <div class="cell"><input aria-label="B5" placeholder="B5" /></div>
+            <div class="cell"><input aria-label="C5" placeholder="C5" /></div>
+            <div class="cell"><input aria-label="D5" placeholder="D5" /></div>
+            <div class="cell"><input aria-label="E5" placeholder="E5" /></div>
+            <div class="cell"><input aria-label="F5" placeholder="F5" /></div>
+            <div class="cell"><input aria-label="G5" placeholder="G5" /></div>
+            <div class="cell"><input aria-label="H5" placeholder="H5" /></div>
+            <div class="cell"><input aria-label="I5" placeholder="I5" /></div>
+            <div class="cell"><input aria-label="J5" placeholder="J5" /></div>
+            <!-- Linha 6 -->
+            <div class="rowhead" role="rowheader">6</div>
+            <div class="cell"><input aria-label="A6" placeholder="A6" /></div>
+            <div class="cell"><input aria-label="B6" placeholder="B6" /></div>
+            <div class="cell"><input aria-label="C6" placeholder="C6" /></div>
+            <div class="cell"><input aria-label="D6" placeholder="D6" /></div>
+            <div class="cell"><input aria-label="E6" placeholder="E6" /></div>
+            <div class="cell"><input aria-label="F6" placeholder="F6" /></div>
+            <div class="cell"><input aria-label="G6" placeholder="G6" /></div>
+            <div class="cell"><input aria-label="H6" placeholder="H6" /></div>
+            <div class="cell"><input aria-label="I6" placeholder="I6" /></div>
+            <div class="cell"><input aria-label="J6" placeholder="J6" /></div>
+            <!-- Linha 7 -->
+            <div class="rowhead" role="rowheader">7</div>
+            <div class="cell"><input aria-label="A7" placeholder="A7" /></div>
+            <div class="cell"><input aria-label="B7" placeholder="B7" /></div>
+            <div class="cell"><input aria-label="C7" placeholder="C7" /></div>
+            <div class="cell"><input aria-label="D7" placeholder="D7" /></div>
+            <div class="cell"><input aria-label="E7" placeholder="E7" /></div>
+            <div class="cell"><input aria-label="F7" placeholder="F7" /></div>
+            <div class="cell"><input aria-label="G7" placeholder="G7" /></div>
+            <div class="cell"><input aria-label="H7" placeholder="H7" /></div>
+            <div class="cell"><input aria-label="I7" placeholder="I7" /></div>
+            <div class="cell"><input aria-label="J7" placeholder="J7" /></div>
+            <!-- Linha 8 -->
+            <div class="rowhead" role="rowheader">8</div>
+            <div class="cell"><input aria-label="A8" placeholder="A8" /></div>
+            <div class="cell"><input aria-label="B8" placeholder="B8" /></div>
+            <div class="cell"><input aria-label="C8" placeholder="C8" /></div>
+            <div class="cell"><input aria-label="D8" placeholder="D8" /></div>
+            <div class="cell"><input aria-label="E8" placeholder="E8" /></div>
+            <div class="cell"><input aria-label="F8" placeholder="F8" /></div>
+            <div class="cell"><input aria-label="G8" placeholder="G8" /></div>
+            <div class="cell"><input aria-label="H8" placeholder="H8" /></div>
+            <div class="cell"><input aria-label="I8" placeholder="I8" /></div>
+            <div class="cell"><input aria-label="J8" placeholder="J8" /></div>
+            <!-- Linha 9 -->
+            <div class="rowhead" role="rowheader">9</div>
+            <div class="cell"><input aria-label="A9" placeholder="A9" /></div>
+            <div class="cell"><input aria-label="B9" placeholder="B9" /></div>
+            <div class="cell"><input aria-label="C9" placeholder="C9" /></div>
+            <div class="cell"><input aria-label="D9" placeholder="D9" /></div>
+            <div class="cell"><input aria-label="E9" placeholder="E9" /></div>
+            <div class="cell"><input aria-label="F9" placeholder="F9" /></div>
+            <div class="cell"><input aria-label="G9" placeholder="G9" /></div>
+            <div class="cell"><input aria-label="H9" placeholder="H9" /></div>
+            <div class="cell"><input aria-label="I9" placeholder="I9" /></div>
+            <div class="cell"><input aria-label="J9" placeholder="J9" /></div>
+            <!-- Linha 10 -->
+            <div class="rowhead" role="rowheader">10</div>
+            <div class="cell"><input aria-label="A10" placeholder="A10" /></div>
+            <div class="cell"><input aria-label="B10" placeholder="B10" /></div>
+            <div class="cell"><input aria-label="C10" placeholder="C10" /></div>
+            <div class="cell"><input aria-label="D10" placeholder="D10" /></div>
+            <div class="cell"><input aria-label="E10" placeholder="E10" /></div>
+            <div class="cell"><input aria-label="F10" placeholder="F10" /></div>
+            <div class="cell"><input aria-label="G10" placeholder="G10" /></div>
+            <div class="cell"><input aria-label="H10" placeholder="H10" /></div>
+            <div class="cell"><input aria-label="I10" placeholder="I10" /></div>
+            <div class="cell"><input aria-label="J10" placeholder="J10" /></div>
+            <!-- Linha 11 -->
+            <div class="rowhead" role="rowheader">11</div>
+            <div class="cell"><input aria-label="A11" placeholder="A11" /></div>
+            <div class="cell"><input aria-label="B11" placeholder="B11" /></div>
+            <div class="cell"><input aria-label="C11" placeholder="C11" /></div>
+            <div class="cell"><input aria-label="D11" placeholder="D11" /></div>
+            <div class="cell"><input aria-label="E11" placeholder="E11" /></div>
+            <div class="cell"><input aria-label="F11" placeholder="F11" /></div>
+            <div class="cell"><input aria-label="G11" placeholder="G11" /></div>
+            <div class="cell"><input aria-label="H11" placeholder="H11" /></div>
+            <div class="cell"><input aria-label="I11" placeholder="I11" /></div>
+            <div class="cell"><input aria-label="J11" placeholder="J11" /></div>
+            <!-- Linha 12 -->
+            <div class="rowhead" role="rowheader">12</div>
+            <div class="cell"><input aria-label="A12" placeholder="A12" /></div>
+            <div class="cell"><input aria-label="B12" placeholder="B12" /></div>
+            <div class="cell"><input aria-label="C12" placeholder="C12" /></div>
+            <div class="cell"><input aria-label="D12" placeholder="D12" /></div>
+            <div class="cell"><input aria-label="E12" placeholder="E12" /></div>
+            <div class="cell"><input aria-label="F12" placeholder="F12" /></div>
+            <div class="cell"><input aria-label="G12" placeholder="G12" /></div>
+            <div class="cell"><input aria-label="H12" placeholder="H12" /></div>
+            <div class="cell"><input aria-label="I12" placeholder="I12" /></div>
+            <div class="cell"><input aria-label="J12" placeholder="J12" /></div>
+            <!-- Linha 13 -->
+            <div class="rowhead" role="rowheader">13</div>
+            <div class="cell"><input aria-label="A13" placeholder="A13" /></div>
+            <div class="cell"><input aria-label="B13" placeholder="B13" /></div>
+            <div class="cell"><input aria-label="C13" placeholder="C13" /></div>
+            <div class="cell"><input aria-label="D13" placeholder="D13" /></div>
+            <div class="cell"><input aria-label="E13" placeholder="E13" /></div>
+            <div class="cell"><input aria-label="F13" placeholder="F13" /></div>
+            <div class="cell"><input aria-label="G13" placeholder="G13" /></div>
+            <div class="cell"><input aria-label="H13" placeholder="H13" /></div>
+            <div class="cell"><input aria-label="I13" placeholder="I13" /></div>
+            <div class="cell"><input aria-label="J13" placeholder="J13" /></div>
+            <!-- Linha 14 -->
+            <div class="rowhead" role="rowheader">14</div>
+            <div class="cell"><input aria-label="A14" placeholder="A14" /></div>
+            <div class="cell"><input aria-label="B14" placeholder="B14" /></div>
+            <div class="cell"><input aria-label="C14" placeholder="C14" /></div>
+            <div class="cell"><input aria-label="D14" placeholder="D14" /></div>
+            <div class="cell"><input aria-label="E14" placeholder="E14" /></div>
+            <div class="cell"><input aria-label="F14" placeholder="F14" /></div>
+            <div class="cell"><input aria-label="G14" placeholder="G14" /></div>
+            <div class="cell"><input aria-label="H14" placeholder="H14" /></div>
+            <div class="cell"><input aria-label="I14" placeholder="I14" /></div>
+            <div class="cell"><input aria-label="J14" placeholder="J14" /></div>
+            <!-- Linha 15 -->
+            <div class="rowhead" role="rowheader">15</div>
+            <div class="cell"><input aria-label="A15" placeholder="A15" /></div>
+            <div class="cell"><input aria-label="B15" placeholder="B15" /></div>
+            <div class="cell"><input aria-label="C15" placeholder="C15" /></div>
+            <div class="cell"><input aria-label="D15" placeholder="D15" /></div>
+            <div class="cell"><input aria-label="E15" placeholder="E15" /></div>
+            <div class="cell"><input aria-label="F15" placeholder="F15" /></div>
+            <div class="cell"><input aria-label="G15" placeholder="G15" /></div>
+            <div class="cell"><input aria-label="H15" placeholder="H15" /></div>
+            <div class="cell"><input aria-label="I15" placeholder="I15" /></div>
+            <div class="cell"><input aria-label="J15" placeholder="J15" /></div>
+            <!-- Linha 16 -->
+            <div class="rowhead" role="rowheader">16</div>
+            <div class="cell"><input aria-label="A16" placeholder="A16" /></div>
+            <div class="cell"><input aria-label="B16" placeholder="B16" /></div>
+            <div class="cell"><input aria-label="C16" placeholder="C16" /></div>
+            <div class="cell"><input aria-label="D16" placeholder="D16" /></div>
+            <div class="cell"><input aria-label="E16" placeholder="E16" /></div>
+            <div class="cell"><input aria-label="F16" placeholder="F16" /></div>
+            <div class="cell"><input aria-label="G16" placeholder="G16" /></div>
+            <div class="cell"><input aria-label="H16" placeholder="H16" /></div>
+            <div class="cell"><input aria-label="I16" placeholder="I16" /></div>
+            <div class="cell"><input aria-label="J16" placeholder="J16" /></div>
+            <!-- Linha 17 -->
+            <div class="rowhead" role="rowheader">17</div>
+            <div class="cell"><input aria-label="A17" placeholder="A17" /></div>
+            <div class="cell"><input aria-label="B17" placeholder="B17" /></div>
+            <div class="cell"><input aria-label="C17" placeholder="C17" /></div>
+            <div class="cell"><input aria-label="D17" placeholder="D17" /></div>
+            <div class="cell"><input aria-label="E17" placeholder="E17" /></div>
+            <div class="cell"><input aria-label="F17" placeholder="F17" /></div>
+            <div class="cell"><input aria-label="G17" placeholder="G17" /></div>
+            <div class="cell"><input aria-label="H17" placeholder="H17" /></div>
+            <div class="cell"><input aria-label="I17" placeholder="I17" /></div>
+            <div class="cell"><input aria-label="J17" placeholder="J17" /></div>
+            <!-- Linha 18 -->
+            <div class="rowhead" role="rowheader">18</div>
+            <div class="cell"><input aria-label="A18" placeholder="A18" /></div>
+            <div class="cell"><input aria-label="B18" placeholder="B18" /></div>
+            <div class="cell"><input aria-label="C18" placeholder="C18" /></div>
+            <div class="cell"><input aria-label="D18" placeholder="D18" /></div>
+            <div class="cell"><input aria-label="E18" placeholder="E18" /></div>
+            <div class="cell"><input aria-label="F18" placeholder="F18" /></div>
+            <div class="cell"><input aria-label="G18" placeholder="G18" /></div>
+            <div class="cell"><input aria-label="H18" placeholder="H18" /></div>
+            <div class="cell"><input aria-label="I18" placeholder="I18" /></div>
+            <div class="cell"><input aria-label="J18" placeholder="J18" /></div>
+            <!-- Linha 19 -->
+            <div class="rowhead" role="rowheader">19</div>
+            <div class="cell"><input aria-label="A19" placeholder="A19" /></div>
+            <div class="cell"><input aria-label="B19" placeholder="B19" /></div>
+            <div class="cell"><input aria-label="C19" placeholder="C19" /></div>
+            <div class="cell"><input aria-label="D19" placeholder="D19" /></div>
+            <div class="cell"><input aria-label="E19" placeholder="E19" /></div>
+            <div class="cell"><input aria-label="F19" placeholder="F19" /></div>
+            <div class="cell"><input aria-label="G19" placeholder="G19" /></div>
+            <div class="cell"><input aria-label="H19" placeholder="H19" /></div>
+            <div class="cell"><input aria-label="I19" placeholder="I19" /></div>
+            <div class="cell"><input aria-label="J19" placeholder="J19" /></div>
+            <!-- Linha 20 -->
+            <div class="rowhead" role="rowheader">20</div>
+            <div class="cell"><input aria-label="A20" placeholder="A20" /></div>
+            <div class="cell"><input aria-label="B20" placeholder="B20" /></div>
+            <div class="cell"><input aria-label="C20" placeholder="C20" /></div>
+            <div class="cell"><input aria-label="D20" placeholder="D20" /></div>
+            <div class="cell"><input aria-label="E20" placeholder="E20" /></div>
+            <div class="cell"><input aria-label="F20" placeholder="F20" /></div>
+            <div class="cell"><input aria-label="G20" placeholder="G20" /></div>
+            <div class="cell"><input aria-label="H20" placeholder="H20" /></div>
+            <div class="cell"><input aria-label="I20" placeholder="I20" /></div>
+            <div class="cell"><input aria-label="J20" placeholder="J20" /></div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>Este é um layout estático para anotações rápidas. Se quiser, depois posso adicionar botões de exportar, salvar localmente (localStorage) ou aumentar a grade.</div>
+    </footer>
+  </div>
+</body>
+</html>
