@@ -1,123 +1,292 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Planilha do Servidor</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>"Tipo" uma planilha</title>
+  <meta name="description" content="Página inicial do servidor com uma planilha simples para digitar e visualizar dados." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #0b1020;
+      --card: #10162a;
+      --muted: #7781a5;
+      --text: #e6e9f5;
+      --accent: #5b8cff;
+      --grid-border: #27304a;
+      --input-bg: #0c1224;
+      --input-text: #e8ecfa;
+      --input-placeholder: #8b94b3;
+      --ring: 0 0 0 2px rgba(91, 140, 255, 0.45);
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f7f8fc;
+        --card: #ffffff;
+        --muted: #637087;
+        --text: #111827;
+        --accent: #3b82f6;
+        --grid-border: #e5e7ef;
+        --input-bg: #ffffff;
+        --input-text: #111827;
+        --input-placeholder: #9aa5b4;
+        --ring: 0 0 0 2px rgba(59, 130, 246, 0.35);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f9;
       margin: 0;
-      padding: 20px;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 700px at 10% -10%, rgba(91, 140, 255, 0.15), transparent 60%),
+                  radial-gradient(1000px 600px at 110% 10%, rgba(91, 255, 197, 0.08), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+    }
+
+    .page {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 20px;
+    }
+
+    header {
       display: flex;
-      flex-direction: column;
       align-items: center;
+      justify-content: space-between;
+      padding: 20px clamp(16px, 3vw, 36px);
     }
-    h1 {
-      margin-bottom: 20px;
-      color: #333;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      max-width: 900px;
-      background: white;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    td, th {
-      border: 1px solid #ddd;
-      padding: 0;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      outline: none;
-      font-size: 14px;
-    }
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-    .controls {
-      margin-bottom: 20px;
+
+    .brand {
       display: flex;
-      gap: 10px;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
     }
-    button {
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
-      background: #0077ff;
-      color: white;
-      cursor: pointer;
+
+    .brand .logo {
+      width: 36px; height: 36px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), #8aa8ff);
+      box-shadow: 0 6px 22px rgba(91, 140, 255, 0.35);
+    }
+
+    .actions {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .chip {
+      padding: 8px 12px; border-radius: 999px; border: 1px solid var(--grid-border);
+      background: color-mix(in oklab, var(--card) 85%, black 15%);
+      color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: .3px;
+      user-select: none;
+    }
+
+    .intro {
+      padding: 0 clamp(16px, 3vw, 36px);
+      margin-bottom: -4px;
+    }
+
+    .intro h1 {
+      margin: 0 0 8px;
+      font-size: clamp(22px, 3.2vw, 32px);
+      line-height: 1.2;
+    }
+
+    .intro p { margin: 0; color: var(--muted); }
+
+    .sheet-wrap {
+      padding: 0 clamp(16px, 3vw, 36px) clamp(20px, 3vw, 32px);
+    }
+
+    .sheet-card {
+      background: var(--card);
+      border: 1px solid var(--grid-border);
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.25);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--grid-border);
+      background: linear-gradient(180deg, color-mix(in oklab, var(--card) 88%, black 15%), var(--card));
+    }
+    .toolbar .left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .btn {
+      border: 1px solid var(--grid-border); border-radius: 10px; padding: 8px 12px;
+      background: var(--input-bg); color: var(--text); font-weight: 600; font-size: 12px; letter-spacing: .2px;
+      cursor: default;
+      opacity: .85;
+    }
+
+    .grid-scroll {
+      overflow: auto;
+      max-height: calc(100vh - 260px);
+      scrollbar-width: thin;
+    }
+
+    /* Planilha */
+    .sheet {
+      display: grid;
+      grid-template-columns: 64px repeat(15, minmax(120px, 1fr));
+      min-width: 100%;
+      border-bottom: 1px solid var(--grid-border);
+    }
+
+    .cell, .header, .rowhead {
+      border-right: 1px solid var(--grid-border);
+      border-top: 1px solid var(--grid-border);
+      min-height: 44px;
+      display: flex; align-items: center; justify-content: center;
       font-size: 14px;
+      background: var(--card);
     }
-    button:hover {
-      background: #005fcc;
+
+    .header {
+      position: sticky; top: 0; z-index: 2;
+      background: linear-gradient(180deg, color-mix(in oklab, var(--card) 95%, white 5%), var(--card));
+      font-weight: 700; color: var(--muted);
+    }
+
+    .rowhead {
+      position: sticky; left: 0; z-index: 1;
+      background: linear-gradient(90deg, color-mix(in oklab, var(--card) 95%, white 5%), var(--card));
+      font-weight: 700; color: var(--muted);
+    }
+
+    .cell input {
+      width: 100%; height: 100%;
+      border: none; outline: none; padding: 10px 12px;
+      background: var(--input-bg); color: var(--input-text);
+      font: inherit; text-align: left;
+    }
+
+    .cell input::placeholder { color: var(--input-placeholder); }
+    .cell input:focus { box-shadow: var(--ring); position: relative; z-index: 5; }
+
+    footer {
+      padding: 16px clamp(16px, 3vw, 36px) 40px; color: var(--muted); font-size: 12px;
+    }
+
+    /* Responsivo */
+    @media (max-width: 900px) {
+      .sheet { grid-template-columns: 48px repeat(6, minmax(120px, 1fr)); }
+      .grid-scroll { max-height: calc(100vh - 240px); }
+    }
+
+    @media (max-width: 600px) {
+      .sheet { grid-template-columns: 40px repeat(4, minmax(110px, 1fr)); }
+      .cell, .header, .rowhead { min-height: 40px; }
     }
   </style>
 </head>
 <body>
-  <h1>📊 Planilha do Servidor</h1>
+  <div class="page">
+    <header>
+      <div class="brand" aria-label="Identidade do servidor">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div style="font-size: 14px; color: var(--muted); font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase;">Uma planilha • será!?</div>
+          <div style="font-size: 18px; font-weight: 700;">"Tipo" uma planilha</div>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="chip">Somente digitação • sem fórmulas</div>
+        <div class="chip">Responsiva. Será!?</div>
+        <div class="chip">Dark/Light automático • Ou não</div>
+      </div>
+    </header>
 
-  <div class="controls">
-    <button onclick="addRow()">+ Linha</button>
-    <button onclick="addColumn()">+ Coluna</button>
+    <section class="intro">
+      <h1>Essa página é "Tipo" uma Planilha</h1>
+      <p>Use os campos abaixo para digitar e visualizar dados de forma simples. Não há cálculos, armazenamento ou envio automático. Não há nada. </p>
+      <br>
+      <p>Para apagar basta atualizar a página. </p>
+    </section>
+
+    <section class="sheet-wrap" aria-label="Planilha">
+      <div class="sheet-card" role="region" aria-label="Planilha de entradas">
+        <div class="toolbar">
+          <div class="left">
+            <div class="btn" aria-hidden="true">Arquivo Nenhum</div>
+            <div class="btn" aria-hidden="true">Editar o que?</div>
+            <div class="btn" aria-hidden="true">Exibir Nada</div>
+          </div>
+          <div class="btn" aria-hidden="true">Apenas visual • sem funções</div>
+        </div>
+
+        <div class="grid-scroll">
+          <div class="sheet" role="table" aria-label="Tabela editável sem cálculos" id="sheet-container">
+            </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>Para que serve uma planilha que não serve para nada? Descubra!</div>
+    </footer>
   </div>
 
-  <table id="spreadsheet"></table>
-
   <script>
-    const rows = 8;
-    const cols = 6;
+    document.addEventListener('DOMContentLoaded', () => {
+      const sheet = document.getElementById('sheet-container');
+      const numRows = 30;
+      const numCols = 15;
+      const columnLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
 
-    const table = document.getElementById("spreadsheet");
+      // Função para gerar os cabeçalhos das colunas (A, B, C...)
+      function generateColumnHeaders() {
+        const rowheadHeader = document.createElement('div');
+        rowheadHeader.className = 'rowhead header';
+        rowheadHeader.setAttribute('role', 'columnheader');
+        rowheadHeader.setAttribute('aria-label', '#');
+        sheet.appendChild(rowheadHeader);
 
-    // Cria a planilha inicial
-    function createSheet(r, c) {
-      for (let i = 0; i < r; i++) {
-        const row = document.createElement("tr");
-        for (let j = 0; j < c; j++) {
-          const cell = document.createElement("td");
-          const input = document.createElement("input");
-          input.type = "text";
-          cell.appendChild(input);
-          row.appendChild(cell);
+        for (let i = 0; i < numCols; i++) {
+          const header = document.createElement('div');
+          header.className = 'header';
+          header.setAttribute('role', 'columnheader');
+          header.textContent = columnLetters[i];
+          sheet.appendChild(header);
         }
-        table.appendChild(row);
       }
-    }
 
-    // Adiciona linha
-    function addRow() {
-      const colsCount = table.rows[0].cells.length;
-      const row = document.createElement("tr");
-      for (let j = 0; j < colsCount; j++) {
-        const cell = document.createElement("td");
-        const input = document.createElement("input");
-        input.type = "text";
-        cell.appendChild(input);
-        row.appendChild(cell);
+      // Função para gerar as linhas da planilha
+      function generateRows() {
+        for (let i = 1; i <= numRows; i++) {
+          // Cabeçalho da linha (1, 2, 3...)
+          const rowhead = document.createElement('div');
+          rowhead.className = 'rowhead';
+          rowhead.setAttribute('role', 'rowheader');
+          rowhead.textContent = i;
+          sheet.appendChild(rowhead);
+
+          // Células da linha
+          for (let j = 0; j < numCols; j++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+
+            const input = document.createElement('input');
+            const cellName = columnLetters[j] + i;
+            input.setAttribute('aria-label', cellName);
+            input.setAttribute('placeholder', cellName);
+
+            cell.appendChild(input);
+            sheet.appendChild(cell);
+          }
+        }
       }
-      table.appendChild(row);
-    }
 
-    // Adiciona coluna
-    function addColumn() {
-      for (let i = 0; i < table.rows.length; i++) {
-        const cell = document.createElement("td");
-        const input = document.createElement("input");
-        input.type = "text";
-        cell.appendChild(input);
-        table.rows[i].appendChild(cell);
-      }
-    }
-
-    // Inicializa
-    createSheet(rows, cols);
+      generateColumnHeaders();
+      generateRows();
+    });
   </script>
 </body>
 </html>
