@@ -246,6 +246,43 @@
             /* Opcional: Alinha a imagem no centro do contêiner */
             object-position: center;
         }
+
+        .visual-placeholder {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .carousel-slides .slide {
+            display: none;
+        }
+
+        .carousel-slides .slide.active {
+            display: block;
+            width: 100%;
+        }
+
+        .carousel-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        .carousel-button.prev {
+            left: 10px;
+        }
+
+        .carousel-button.next {
+            right: 10px;
+        }
     </style>
 </head>
 
@@ -414,7 +451,8 @@
                         permitindo uma reação mais rápida.</p>
                 </div>
                 <div class="visual-placeholder">
-                    <img src="slide5a.png" alt="[Diagrama de Ecossistema: Carro se comunicando com outros carros (V2V), semáforos (V2I), e nuvem (V2N).]">
+                    <img src="slide5a.png"
+                        alt="[Diagrama de Ecossistema: Carro se comunicando com outros carros (V2V), semáforos (V2I), e nuvem (V2N).]">
                 </div>
         </section>
 
@@ -431,9 +469,10 @@
                             (OTA)</strong> e o <strong>Veículo Definido por Software</strong>.</p>
                 </div>
                 <div class="visual-placeholder">
-                    <img src="slide6a.jpg" alt="[Fluxograma: Arquitetura Distribuída -> Controladores de Domínio -> Arquitetura Centralizada.]">
+                    <img src="slide6a.jpg"
+                        alt="[Fluxograma: Arquitetura Distribuída -> Controladores de Domínio -> Arquitetura Centralizada.]">
                 </div>
-                
+
             </div>
         </section>
 
@@ -449,7 +488,8 @@
                         exponencialmente, e o ML se torna crítico para todo o ciclo.</p>
                 </div>
                 <div class="visual-placeholder">
-                    <img src="slide7a.jpg" alt="[Infográfico padrão dos níveis SAE 0 a 5, com a linha divisória de responsabilidade.]">
+                    <img src="slide7a.jpg"
+                        alt="[Infográfico padrão dos níveis SAE 0 a 5, com a linha divisória de responsabilidade.]">
                 </div>
             </div>
         </section>
@@ -469,9 +509,10 @@
                     <p>Nenhum sensor é perfeito. A solução está na <strong>fusão (Sensor Fusion)</strong>.</p>
                 </div>
                 <div class="visual-placeholder">
-                    <img src="slide8a.png" alt="[Imagem de carro com cones mostrando campo de visão (FoV) de Câmera, RADAR e LiDAR.]">
+                    <img src="slide8a.png"
+                        alt="[Imagem de carro com cones mostrando campo de visão (FoV) de Câmera, RADAR e LiDAR.]">
                 </div>
-                
+
             </div>
         </section>
 
@@ -488,8 +529,11 @@
                         <li><strong>Control:</strong> "Execute o plano."</li>
                     </ul>
                 </div>
-                <div class="visual-placeholder">[Diagrama de Ciclo: SENSOR DATA -> PERCEPTION -> FUSION -> PREDICTION ->
-                    PLANNING -> CONTROL.]</div>
+                <div class="visual-placeholder">
+                    <img src="slide9a.png"
+                        alt="[Diagrama de Ciclo: SENSOR DATA -> PERCEPTION -> FUSION -> PREDICTION->PLANNING -> CONTROL.]">
+                </div>
+
             </div>
         </section>
 
@@ -506,9 +550,24 @@
                     <p><strong>Ferramentas:</strong> TensorFlow, PyTorch, com otimização para hardware embarcado usando
                         <strong>TensorRT</strong> ou <strong>ONNX Runtime</strong>.
                     </p>
+                    <p>O desafio é equilibrar <strong>precisão, latência e eficiência energética</strong> em hardware
+                        limitado.</p>
+                    <!--p>
+                        <a href="https://youtu.be/3YE7z7RQjjU?si=_mPN5PTNEP3_pigE" target="_blank"
+                            rel="noopener noreferrer">Link do Vídeo 1</a>
+
+                        <a href="https://youtu.be/IIReDnbLQAE?si=oPcKjmJQN8jz5qE1" target="_blank"
+                            rel="noopener noreferrer">Link do Vídeo 2</a>
+                    </p -->
                 </div>
-                <div class="visual-placeholder">[Animação de uma CNN processando uma imagem e gerando bounding boxes com
-                    rótulos.]</div>
+                <div class="visual-placeholder">
+                    <video controls style="width: 100%;">
+                        <source src="dash.mp4" type="video/mp4"
+                            alt="[Animação de uma CNN processando uma imagem e gerando bounding boxes com rótulos.]">
+                        Seu navegador não suporta a tag de vídeo.
+                    </video>
+                </div>
+
             </div>
         </section>
 
@@ -523,8 +582,14 @@
                             features</strong> de múltiplos sensores em um estágio intermediário da rede neural (e.g.,
                         BEVFusion).</p>
                 </div>
-                <div class="visual-placeholder">[Diagrama: Dados de Câmera e LiDAR sendo combinados por um Filtro de
-                    Kalman para gerar um estado com elipsoide de incerteza.]</div>
+                
+                <div class="visual-placeholder">
+                    <video controls style="width: 100%;">
+                        <source src="sensor-fusion.mp4" type="video/mp4"
+                            alt="[Diagrama: Dados de Câmera e LiDAR sendo combinados por um Filtro de Kalman para gerar um estado com elipsoide de incerteza.]">
+                        Seu navegador não suporta a tag de vídeo.
+                    </video>
+                </div>
             </div>
         </section>
 
@@ -753,7 +818,44 @@
                 showSlide(0);
             }
         });
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const slides = document.querySelectorAll('.visual-placeholder .slide');
+            let currentSlide = 0;
+
+            function showSlide(index) {
+                slides.forEach((slide, i) => {
+                    slide.classList.toggle('active', i === index);
+                });
+            }
+
+            document.querySelector('.visual-placeholder .prev').addEventListener('click', () => {
+                currentSlide = (currentSlide > 0) ? currentSlide - 1 : slides.length - 1;
+                showSlide(currentSlide);
+            });
+
+            document.querySelector('.visual-placeholder .next').addEventListener('click', () => {
+                currentSlide = (currentSlide < slides.length - 1) ? currentSlide + 1 : 0;
+                showSlide(currentSlide);
+            });
+        });
     </script>
 </body>
 
 </html>
+
+<!--
+<div class="visual-placeholder">
+                    <div class="carousel-wrapper">
+                        <div class="carousel-slides">
+                            <img src="slide9a.png" alt="[Diagrama de Ciclo: SENSOR DATA -> PERCEPTION -> FUSION -> PREDICTION->PLANNING -> CONTROL.]" class="slide-active">
+                            <img src="slide9b.webp" alt="Descrição da Imagem 2" class="slide">
+                            <img src="slide9c.png" alt="Descrição da Imagem 3" class="slide">
+                           </div>
+                        <button class="carousel-button prev">&#10094;</button>
+                        <button class="carousel-button next">&#10095;</button>
+                    </div>
+                </div>
+
+-->
