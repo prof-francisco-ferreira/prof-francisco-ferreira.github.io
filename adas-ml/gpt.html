@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ADAS & Machine Learning — Slides Interativos</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#5A5AF0;--muted:#94a3b8;--glass: rgba(255,255,255,0.03)}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;color:#e6eef8;background:linear-gradient(180deg,#071021 0%,#071827 60%)}
+    .app{display:grid;grid-template-columns:300px 1fr;gap:20px;height:100vh;padding:18px}
+    .sidebar{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 6px 20px rgba(0,0,0,0.6);overflow:auto}
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#007AFF);display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+    h1{font-size:16px;margin:0}
+    .menu{margin-top:12px}
+    .menu a{display:block;padding:8px;border-radius:8px;color:var(--muted);text-decoration:none;margin-bottom:6px}
+    .menu a.active{background:var(--glass);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
+    .menu a:hover{color:#fff}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    button{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:8px 10px;border-radius:8px;cursor:pointer}
+    button.primary{background:var(--accent);border:none;color:white}
+    .main{padding:16px;overflow:auto}
+    .slide{min-height:calc(100vh - 60px);display:none;padding:28px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);box-shadow:0 6px 30px rgba(0,0,0,0.6)}
+    .slide.active{display:block}
+    .slide h2{margin-top:0}
+    .meta{color:var(--muted);font-size:13px;margin-bottom:8px}
+    .row{display:flex;gap:20px;align-items:flex-start}
+    .col{flex:1}
+    .card{background:rgba(255,255,255,0.02);padding:12px;border-radius:10px}
+    .kbd{background:#071229;border-radius:6px;padding:6px 8px;border:1px solid rgba(255,255,255,0.03);font-family:monospace}
+    .diagram{margin:12px 0;padding:12px;border-radius:10px;background:linear-gradient(90deg, rgba(90,90,240,0.06), rgba(0,122,255,0.03));}
+    .controls-bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px}
+    .progress{height:8px;background:rgba(255,255,255,0.04);border-radius:999px;overflow:hidden}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#007AFF);width:0%}
+    .timer{font-family:monospace;color:var(--muted)}
+    .small{font-size:13px;color:var(--muted)}
+    a.ref{color:var(--accent);text-decoration:none}
+    /* Responsive */
+    @media(max-width:880px){.app{grid-template-columns:1fr;height:100%}.sidebar{order:2;height:220px}.main{order:1;padding:12px}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">ADAS</div>
+        <div>
+          <h1>ADAS & Machine Learning</h1>
+          <div class="small">Slides interativos • ~60 min • público: acadêmico</div>
+        </div>
+      </div>
+
+      <div class="menu" id="menu"></div>
+
+      <div class="controls">
+        <button id="prevBtn">◀ Anterior</button>
+        <button id="nextBtn">Próximo ▶</button>
+        <button id="playBtn" class="primary">Iniciar Timer</button>
+        <button id="resetTimer">Reset</button>
+      </div>
+
+      <div style="margin-top:12px" class="small">Navegação rápida</div>
+      <div class="controls" style="margin-top:8px">
+        <button onclick="gotoSlide(1)">Início</button>
+        <button onclick="gotoSlide(10)">ML</button>
+        <button onclick="gotoSlide(18)">Ação</button>
+      </div>
+
+      <div style="margin-top:14px" class="small">Progresso da apresentação</div>
+      <div class="progress" style="margin-top:8px"><i id="progressBar"></i></div>
+
+      <div style="margin-top:14px" class="small">Dicas</div>
+      <div class="small card" style="margin-top:8px">
+        Use as setas ◀ ▶, clique no menu, ou pressione <span class="kbd">Home</span>/<span class="kbd">End</span> para navegar.<br>
+        Timer sugerido: 2 minutos por slide — *ajuste conforme sua fala*.
+      </div>
+
+    </aside>
+
+    <main class="main">
+      <!-- Slides container -->
+      <div id="slides">
+
+        <!-- Slide template: replicate with content -->
+
+        <section id="slide-1" class="slide active">
+          <h2>Slide 1 — Título</h2>
+          <div class="meta">Aplicações ADAS e Machine Learning — Introdução</div>
+          <p><strong>Aplicações ADAS e Machine Learning</strong> — apresentação introdutória no estilo 101 para público acadêmico em Ciência de Dados e Engenharia de Software. <em>Tempo sugerido: 2 min</em>.</p>
+        </section>
+
+        <section id="slide-2" class="slide">
+          <h2>Slide 2 — Objetivos da Aula</h2>
+          <div class="meta">O que esperamos cobrir</div>
+          <ul>
+            <li><strong>Evolução dos sistemas veiculares</strong></li>
+            <li><strong>Redes internas e externas</strong></li>
+            <li><strong>Aplicações ADAS</strong></li>
+            <li><strong>Machine Learning aplicado</strong> e desafios</li>
+          </ul>
+        </section>
+
+        <section id="slide-3" class="slide">
+          <h2>Slide 3 — Contextualização</h2>
+          <p><strong>De máquinas mecânicas a computadores sobre rodas.</strong> Hoje os veículos integram sensores, atuadores e algoritmos. *Essa transformação permite decisões em tempo real e abre caminho para a autonomia.*</p>
+          <div class="diagram">
+            <!-- timeline SVG -->
+            <svg width="100%" height="80" viewBox="0 0 800 80" preserveAspectRatio="xMidYMid meet">
+              <rect x="0" y="30" width="800" height="20" fill="rgba(255,255,255,0.03)" rx="10"/>
+              <text x="40" y="25" fill="#a8b3c6" font-size="12">Mecânico</text>
+              <circle cx="120" cy="40" r="8" fill="#5A5AF0"/>
+              <text x="160" y="25" fill="#a8b3c6" font-size="12">Eletrônico</text>
+              <circle cx="300" cy="40" r="8" fill="#5A5AF0"/>
+              <text x="340" y="25" fill="#a8b3c6" font-size="12">Conectado</text>
+              <circle cx="480" cy="40" r="8" fill="#5A5AF0"/>
+              <text x="520" y="25" fill="#a8b3c6" font-size="12">Inteligente</text>
+            </svg>
+          </div>
+        </section>
+
+        <section id="slide-4" class="slide">
+          <h2>Slide 4 — Evolução dos Sistemas Veiculares</h2>
+          <p>Resumo histórico: <strong>ABS, injeção eletrônica</strong> → barramentos internos (CAN) → sensores e ADAS → integração com <strong>IA</strong> e big data.</p>
+        </section>
+
+        <section id="slide-5" class="slide">
+          <h2>Slide 5 — Redes Internas (CAN, LIN, FlexRay)</h2>
+          <p><strong>CAN</strong> (Controller Area Network) — comunicação entre ECUs. <em>Ex.: sensor de velocidade, ECU do motor, ABS.</em></p>
+          <div class="card small">
+            <strong>Comparação rápida:</strong>
+            <ul>
+              <li><strong>CAN</strong>: robustez e latência moderada.</li>
+              <li><strong>FlexRay</strong>: maior determinismo para controle crítico.</li>
+              <li><strong>LIN</strong>: comunicação de baixo custo para periféricos.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="slide-6" class="slide">
+          <h2>Slide 6 — Redes Externas (V2V, V2I, C-V2X)</h2>
+          <p><strong>V2V</strong> e <strong>V2I</strong> aumentam a consciência situacional além do campo de visão. <em>Ex.: aviso de freada brusca adiante recebido via C‑V2X.</em></p>
+          <div class="diagram">
+            <svg viewBox="0 0 600 140" width="100%" height="120">
+              <rect x="20" y="20" width="120" height="60" rx="8" fill="#071229" stroke="#26407a"/>
+              <text x="30" y="55" fill="#fff">Veículo A</text>
+              <rect x="220" y="20" width="120" height="60" rx="8" fill="#071229" stroke="#26407a"/>
+              <text x="240" y="55" fill="#fff">Veículo B</text>
+              <rect x="420" y="20" width="120" height="60" rx="8" fill="#071229" stroke="#26407a"/>
+              <text x="440" y="55" fill="#fff">Semáforo</text>
+              <path d="M140 50 C180 20,220 20,220 50" stroke="#7fb1ff" stroke-width="2" fill="none"/>
+              <path d="M340 50 C380 80,420 80,420 50" stroke="#7fb1ff" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+        </section>
+
+        <section id="slide-7" class="slide">
+          <h2>Slide 7 — O que é ADAS?</h2>
+          <p><strong>Advanced Driver Assistance Systems</strong> — sistemas projetados para ajudar o motorista com tarefas de condução e segurança. *Base teórica e prática para autonomia.*</p>
+        </section>
+
+        <section id="slide-8" class="slide">
+          <h2>Slide 8 — Exemplos de ADAS</h2>
+          <ul>
+            <li><strong>Cruise Control Adaptativo</strong> — mantém distância e velocidade.</li>
+            <li><strong>Frenagem Autônoma de Emergência (AEB)</strong> — detecção de risco de colisão.</li>
+            <li><strong>Assistente de Permanência em Faixa (LKA)</strong> — pequenas correções de direção.</li>
+          </ul>
+        </section>
+
+        <section id="slide-9" class="slide">
+          <h2>Slide 9 — Pipeline ADAS (Ciclo de Vida)</h2>
+          <div class="diagram">
+            <strong>Pipeline:</strong> <em>Captura → Processamento → Decisão → Ação</em>
+            <svg viewBox="0 0 900 80" width="100%" height="80">
+              <rect x="20" y="20" width="180" height="40" rx="8" fill="#071229" stroke="#3a4f7a"/><text x="30" y="46" fill="#fff">Captura (sensores)</text>
+              <rect x="220" y="20" width="200" height="40" rx="8" fill="#071229" stroke="#3a4f7a"/><text x="230" y="46" fill="#fff">Processamento (ECU/edge)</text>
+              <rect x="460" y="20" width="160" height="40" rx="8" fill="#071229" stroke="#3a4f7a"/><text x="470" y="46" fill="#fff">Decisão (algoritmo)</text>
+              <rect x="650" y="20" width="180" height="40" rx="8" fill="#071229" stroke="#3a4f7a"/><text x="660" y="46" fill="#fff">Ação (atuadores)</text>
+              <path d="M200 40 H220" stroke="#7fb1ff" stroke-width="2"/>
+              <path d="M420 40 H460" stroke="#7fb1ff" stroke-width="2"/>
+              <path d="M620 40 H650" stroke="#7fb1ff" stroke-width="2"/>
+            </svg>
+          </div>
+        </section>
+
+        <section id="slide-10" class="slide">
+          <h2>Slide 10 — Transição para Machine Learning</h2>
+          <p><strong>Como transformar sinais de sensores em decisões seguras?</strong> Resposta: <strong>Machine Learning</strong> — modelos que aprendem com dados reais e simulados.</p>
+        </section>
+
+        <section id="slide-11" class="slide">
+          <h2>Slide 11 — ML: Tipos e Aplicações</h2>
+          <p><strong>Supervisionado:</strong> classificação e detecção (ex.: pedestres).<br>
+          <strong>Não supervisionado:</strong> clusterização para análise de tráfego.<br>
+          <strong>Reforço:</strong> aprendizado para políticas de direção.</p>
+        </section>
+
+        <section id="slide-12" class="slide">
+          <h2>Slide 12 — Exemplo prático: CNN para detecção</h2>
+          <p><strong>Redes Neurais Convolucionais (CNN)</strong> — usadas para detectar e classificar objetos em imagens. *Exemplo prático: detecção de placas e pedestres em condições variadas de iluminação.*</p>
+        </section>
+
+        <section id="slide-13" class="slide">
+          <h2>Slide 13 — Pipeline de ML para ADAS</h2>
+          <ol>
+            <li>Coleta de dados (KITTI, Cityscapes, sensores proprietários)</li>
+            <li>Pré-processamento (normalização, augmentação)</li>
+            <li>Treinamento (GPU/TPU, validação cruzada)</li>
+            <li>Deploy em edge (NVIDIA Drive, ECUs embarcadas)</li>
+            <li>Monitoramento e re-treinamento</li>
+          </ol>
+        </section>
+
+        <section id="slide-14" class="slide">
+          <h2>Slide 14 — Ferramentas e Simulação</h2>
+          <p><strong>Frameworks:</strong> TensorFlow, PyTorch.<br>
+          <strong>Simuladores:</strong> CARLA, AirSim — essenciais para gerar dados e testar políticas sem risco.</p>
+        </section>
+
+        <section id="slide-15" class="slide">
+          <h2>Slide 15 — Deploy e Edge Computing</h2>
+          <p>Deploy de modelos em <strong>ECUs</strong> e plataformas como <strong>NVIDIA Drive</strong> ou <strong>Qualcomm Snapdragon Auto</strong>. *Considerações: latência, quantização e otimização.*</p>
+        </section>
+
+        <section id="slide-16" class="slide">
+          <h2>Slide 16 — Segurança e Privacidade</h2>
+          <p><strong>Cibersegurança</strong> das comunicações V2X e das ECUs é crítica. *Autenticação, criptografia e atualização segura de firmware* são essenciais.</p>
+        </section>
+
+        <section id="slide-17" class="slide">
+          <h2>Slide 17 — Robustez e Generalização</h2>
+          <p>Modelos devem generalizar para condições adversas: chuva, neblina, iluminação baixa. *Técnicas*: augmentação, domain adaptation, ensembles.</p>
+        </section>
+
+        <section id="slide-18" class="slide">
+          <h2>Slide 18 — Explicabilidade (XAI)</h2>
+          <p><strong>Explainable AI</strong> — compreensão das decisões do modelo. *Crucial para validação e certificação.* Ferramentas: LIME, SHAP, visualização de ativação.</p>
+        </section>
+
+        <section id="slide-19" class="slide">
+          <h2>Slide 19 — Latência e Requisitos em Tempo Real</h2>
+          <p>Requisito: decisões em milissegundos. *Soluções*: inferência otimizada, quantização, pruning e aceleradores dedicados (TPU/GPU).</p>
+        </section>
+
+        <section id="slide-20" class="slide">
+          <h2>Slide 20 — Casos de Uso Reais</h2>
+          <ul>
+            <li>Detecção de pedestres em perímetros urbanos</li>
+            <li>Gerenciamento de rodovias com V2I</li>
+            <li>Diagnóstico preditivo de falhas</li>
+          </ul>
+        </section>
+
+        <section id="slide-21" class="slide">
+          <h2>Slide 21 — Métricas e Validação</h2>
+          <p>Métricas: precisão, recall, F1, latência 95p, taxa de falso positivo crítico. *Validação em cenários simulados e no mundo real é mandatória.*</p>
+        </section>
+
+        <section id="slide-22" class="slide">
+          <h2>Slide 22 — Ética e Regulamentação</h2>
+          <p>Considerações éticas em decisões automatizadas; regulamentações por região; certificações (por exemplo, normas ISO/SAE relevantes).</p>
+        </section>
+
+        <section id="slide-23" class="slide">
+          <h2>Slide 23 — Arquitetura sugerida (Exemplo)</h2>
+          <div class="diagram">
+            <svg viewBox="0 0 900 220" width="100%" height="220">
+              <!-- Sensors -->
+              <rect x="20" y="20" width="200" height="50" rx="8" fill="#071229" stroke="#334a7a"/><text x="40" y="50" fill="#fff">Sensores (Câmera, LiDAR, Radar)</text>
+              <!-- Perception -->
+              <rect x="240" y="20" width="220" height="50" rx="8" fill="#071229" stroke="#334a7a"/><text x="280" y="50" fill="#fff">Percepção (CNNs, Fusão)</text>
+              <!-- Planning -->
+              <rect x="480" y="20" width="200" height="50" rx="8" fill="#071229" stroke="#334a7a"/><text x="520" y="50" fill="#fff">Planejamento (RL, Heurísticas)</text>
+              <!-- Control -->
+              <rect x="700" y="20" width="160" height="50" rx="8" fill="#071229" stroke="#334a7a"/><text x="720" y="50" fill="#fff">Controle (ECU, Atuadores)</text>
+              <path d="M220 45 H240" stroke="#7fb1ff" stroke-width="2"/>
+              <path d="M460 45 H480" stroke="#7fb1ff" stroke-width="2"/>
+              <path d="M680 45 H700" stroke="#7fb1ff" stroke-width="2"/>
+            </svg>
+          </div>
+        </section>
+
+        <section id="slide-24" class="slide">
+          <h2>Slide 24 — Exemplos de Ferramentas (Resumo)</h2>
+          <p><strong>Tecnologias:</strong> TensorFlow, PyTorch, OpenCV; Simulação: CARLA; Deploy: NVIDIA Drive SDK.</p>
+        </section>
+
+        <section id="slide-25" class="slide">
+          <h2>Slide 25 — Estudos e Autores Relevantes</h2>
+          <ul>
+            <li><strong>Bosch</strong> — história e tecnologias de barramento.</li>
+            <li><strong>Goodall (2014)</strong> — ética e autonomia.</li>
+            <li><strong>Russell & Norvig (2010)</strong> — fundamentos de IA.</li>
+            <li><strong>SAE International</strong> — níveis de automação.</li>
+          </ul>
+        </section>
+
+        <section id="slide-26" class="slide">
+          <h2>Slide 26 — Desafios em Pesquisa</h2>
+          <p>Problemas abertos: robustez sob domínio deslocado, certificação de sistemas ML, privacidade dos dados e integração V2X em larga escala.</p>
+        </section>
+
+        <section id="slide-27" class="slide">
+          <h2>Slide 27 — Exercício Prático Sugerido</h2>
+          <p>Mini-projeto de 1–2 semanas: <strong>detector de pedestres</strong> usando PyTorch e dataset KITTI, validando em CARLA com cenários de chuva e noite.</p>
+        </section>
+
+        <section id="slide-28" class="slide">
+          <h2>Slide 28 — Perguntas para Discussão</h2>
+          <ul>
+            <li>Quais limitações atuais impedem autonomia total (nível 5)?</li>
+            <li>Como balancear explicabilidade e desempenho em tempo real?</li>
+            <li>Quais métricas são mais importantes para segurança?</li>
+          </ul>
+        </section>
+
+        <section id="slide-29" class="slide">
+          <h2>Slide 29 — Recapitulando</h2>
+          <p><strong>Resumo:</strong> evolução → redes internas/externas → ADAS → ML. *O ML é o motor atual que permite ADAS mais sofisticados e que pavimentam o caminho para a autonomia.*</p>
+        </section>
+
+        <section id="slide-30" class="slide">
+          <h2>Slide 30 — Conclusão & Chamada para Ação</h2>
+          <p><strong>Conclusão:</strong> Os carros modernos são sistemas ciberfísicos complexos; <strong>ML é central</strong> para ADAS hoje e no futuro. <strong>Chamada para ação:</strong> experimente datasets (KITTI, Cityscapes), simule em CARLA, e implemente um pipeline simples com PyTorch/TensorFlow — *comece hoje mesmo*.</p>
+          <div style="margin-top:12px" class="small">Referências rápidas: Bosch (2017); Goodall (2014); Russell & Norvig (2010); SAE International (2018).</div>
+        </section>
+
+      </div>
+
+      <div class="controls-bottom">
+        <div>
+          <button id="prevBottom">◀ Anterior</button>
+          <button id="nextBottom">Próximo ▶</button>
+        </div>
+        <div style="text-align:right">
+          <div class="small">Slide <span id="current">1</span>/<span id="total">30</span></div>
+          <div class="timer" id="timer">00:00</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // Build menu dynamically
+    const totalSlides = 30;
+    const menu = document.getElementById('menu');
+    const slides = [];
+    const titles = [
+      'Título','Objetivos da Aula','Contextualização','Evolução dos Sistemas','Redes Internas','Redes Externas','O que é ADAS?','Exemplos de ADAS','Pipeline ADAS','Transição para ML','ML: Tipos e Aplicações','Exemplo: CNN','Pipeline de ML','Ferramentas e Simulação','Deploy e Edge','Segurança e Privacidade','Robustez e Generalização','Explicabilidade (XAI)','Latência e Tempo Real','Casos de Uso Reais','Métricas e Validação','Ética e Regulamentação','Arquitetura sugerida','Ferramentas (Resumo)','Autores Relevantes','Desafios em Pesquisa','Exercício Prático','Perguntas para Discussão','Recapitulando','Conclusão & Ação'
+    ];
+
+    for(let i=1;i<=totalSlides;i++){
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = i + ' — ' + (titles[i-1]||('Slide '+i));
+      a.id = 'menu-' + i;
+      a.addEventListener('click', (e)=>{e.preventDefault(); gotoSlide(i)});
+      menu.appendChild(a);
+      slides.push(document.getElementById('slide-'+i));
+    }
+
+    // Navigation
+    let current = 1;
+    const currentLabel = document.getElementById('current');
+    const totalLabel = document.getElementById('total');
+    totalLabel.textContent = totalSlides;
+
+    function updateView(){
+      slides.forEach((s,idx)=>{
+        if(!s) return;
+        if(idx+1===current){ s.classList.add('active'); document.getElementById('menu-'+(idx+1)).classList.add('active'); }
+        else { s.classList.remove('active'); document.getElementById('menu-'+(idx+1)).classList.remove('active'); }
+      });
+      currentLabel.textContent = current;
+      const pct = Math.round((current/totalSlides)*100);
+      document.getElementById('progressBar').style.width = pct+'%';
+    }
+
+    function gotoSlide(n){ if(n<1) n=1; if(n>totalSlides) n=totalSlides; current = n; updateView(); resetTimer(); }
+
+    document.getElementById('nextBtn').addEventListener('click', ()=>{ if(current<totalSlides) current++; updateView(); resetTimer(); });
+    document.getElementById('prevBtn').addEventListener('click', ()=>{ if(current>1) current--; updateView(); resetTimer(); });
+    document.getElementById('nextBottom').addEventListener('click', ()=>{ if(current<totalSlides) current++; updateView(); resetTimer(); });
+    document.getElementById('prevBottom').addEventListener('click', ()=>{ if(current>1) current--; updateView(); resetTimer(); });
+
+    // Keyboard nav
+    window.addEventListener('keydown',(e)=>{
+      if(e.key==='ArrowRight'){ if(current<totalSlides) current++; updateView(); resetTimer(); }
+      if(e.key==='ArrowLeft'){ if(current>1) current--; updateView(); resetTimer(); }
+      if(e.key==='Home'){ gotoSlide(1); }
+      if(e.key==='End'){ gotoSlide(totalSlides); }
+    });
+
+    // Timer logic: 2 minutes per slide default when playing
+    let timerInterval = null; let seconds = 0; let playing = false;
+    const timerEl = document.getElementById('timer');
+    const playBtn = document.getElementById('playBtn');
+    const resetBtn = document.getElementById('resetTimer');
+    const perSlideSeconds = 120; // 2 minutes
+
+    function formatSec(s){ const mm = String(Math.floor(s/60)).padStart(2,'0'); const ss = String(s%60).padStart(2,'0'); return mm+':'+ss }
+
+    function tick(){ seconds++; timerEl.textContent = formatSec(seconds); if(seconds>=perSlideSeconds){ // auto-advance
+        if(current<totalSlides){ current++; updateView(); seconds=0;} else { stopTimer(); }
+      }
+    }
+    function startTimer(){ if(playing) return; playing=true; playBtn.textContent='Pausar Timer'; timerInterval = setInterval(tick,1000); }
+    function stopTimer(){ playing=false; playBtn.textContent='Iniciar Timer'; clearInterval(timerInterval); timerInterval=null; }
+    function resetTimer(){ seconds=0; timerEl.textContent='00:00'; }
+
+    playBtn.addEventListener('click', ()=>{ if(playing) stopTimer(); else startTimer(); });
+    resetBtn.addEventListener('click', ()=>{ resetTimer(); });
+
+    // initialize
+    updateView(); resetTimer();
+  </script>
+</body>
+</html>
