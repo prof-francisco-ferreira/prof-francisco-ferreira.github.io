@@ -13,10 +13,15 @@
 	<string id='graphics'>GRÁFICOS</string>
 	<string id='sounds'>SONS</string>
 	<string id='bishop'>Bispo</string>
-	<string id='horse'>Cavalo</string>
+	<string id='knight'>Cavalo</string>
 	<string id='queen'>Rainha</string>
-	<string id='tower'>Torre</string>
+	<string id='rook'>Torre</string>
 	<string id='easy'>Fácil</string>
 	<string id='medium'>Médio</string>
 	<string id='hard'>Difícil</string>
+	<string id='tuto_begin'>Clique para começar</string>
+	<string id='tuto_move'>Escolha um movimento</string>
+	<string id='tuto_position'>Escolha uma posição</string>
+	<string id='tuto_aim'>Gire para ajustar a mira</string>
+	<string id='tuto_turn'>Clique para avançar o turno</string>
 </strings>

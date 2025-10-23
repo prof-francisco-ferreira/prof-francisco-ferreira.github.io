@@ -12,11 +12,16 @@
 	<string id='engine'>MOTOR</string>
 	<string id='graphics'>GRÁFICOS</string>
 	<string id='sounds'>SONIDOS</string>
-	<string id='bishop'>Obispo</string>
-	<string id='horse'>Cavallo</string>
-	<string id='queen'>Reina</string>
-	<string id='tower'>Torre</string>
+	<string id='bishop'>Alfil </string>
+	<string id='knight'>Cavallo</string>
+	<string id='queen'>Dama</string>
+	<string id='rook'>Torre</string>
 	<string id='easy'>Fácil</string>
 	<string id='medium'>Media</string>
 	<string id='hard'>Difícil</string>
+	<string id='tuto_begin'>Clic para empezar</string>
+	<string id='tuto_move'>Elija un movimiento</string>
+	<string id='tuto_position'>Seleccione una posición</string>
+	<string id='tuto_aim'>Gire para ajustar la mira</string>
+	<string id='tuto_turn'>Haga clic para avanzar el turno</string>
 </strings>
