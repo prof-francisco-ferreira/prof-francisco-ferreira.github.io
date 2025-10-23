@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<strings>
+	<string id='start'>START</string>
+	<string id='single'>SINGLE PLAYER</string>
+	<string id='vs'>VS PLAYER</string>
+	<string id='language'>LANGUAGE</string>
+	<string id='sound'>SOUNDS</string>
+	<string id='random'>RANDOM START</string>
+	<string id='difficulty'>LEVEL</string>
+	<string id='develop'>DEVELOPED BY</string>
+	<string id='design'>DESIGNED BY</string>
+	<string id='engine'>ENGINE</string>
+	<string id='graphics'>GRAPHICS</string>
+	<string id='sounds'>SOUNDS</string>
+	<string id='bishop'>Bishop</string>
+	<string id='horse'>Horse</string>
+	<string id='queen'>Queen</string>
+	<string id='tower'>Tower</string>
+	<string id='easy'>Easy</string>
+	<string id='medium'>Medium</string>
+	<string id='hard'>Hard</string>
+</strings>

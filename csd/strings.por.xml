@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<strings>
+	<string id='start'>COMEÇAR</string>
+	<string id='single'>UM JOGADOR</string>
+	<string id='vs'>VS JOGADOR</string>
+	<string id='language'>IDIOMA</string>
+	<string id='sound'>SONS</string>
+	<string id='random'>INÍCIO ALEATÓRIO</string>
+	<string id='difficulty'>NÍVEL</string>
+	<string id='develop'>DESENVOLVIDO POR</string>
+	<string id='design'>PROJETADO POR</string>
+	<string id='engine'>MOTOR</string>
+	<string id='graphics'>GRÁFICOS</string>
+	<string id='sounds'>SONS</string>
+	<string id='bishop'>Bispo</string>
+	<string id='horse'>Cavalo</string>
+	<string id='queen'>Rainha</string>
+	<string id='tower'>Torre</string>
+	<string id='easy'>Fácil</string>
+	<string id='medium'>Médio</string>
+	<string id='hard'>Difícil</string>
+</strings>
