@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triad Monitor - Painel do Administrador</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body class="bg-gray-100 font-sans text-gray-800">
+
+    <!-- BARRA SUPERIOR -->
+    <header class="bg-indigo-700 text-white p-4 shadow-md flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold">Triad Monitor</h1>
+            <p class="text-xs text-indigo-200">Painel de Telemetria Distribuída WebRTC</p>
+        </div>
+        <div id="userInfo" class="text-right text-sm hidden">
+            <span class="block font-semibold" id="displayAdminId">Admin: -</span>
+            <span class="inline-block w-2 h-2 rounded-full bg-green-400 mr-1"></span>
+            <span id="statusText">Aguardando Conexão</span>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- TELA DE LOGIN / CONFIGURAÇÃO DE SINALIZAÇÃO -->
+        <section id="loginSection" class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md border border-gray-200">
+            <h2 class="text-xl font-bold mb-4 text-indigo-700">Identificação & Conexão</h2>
+            <p class="text-sm text-gray-600 mb-6">Informe o ID da sua Empresa (Admin ID), a Chave do Agente e as
+                credenciais do Firebase para estabelecer o canal P2P seguro.</p>
+
+            <form id="connectionForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">ID do Administrador / Empresa
+                        (admin_id)</label>
+                    <input type="text" id="adminIdInput" value="eficiencia_db"
+                        class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Chave do Agente
+                        (agent_key)</label>
+                    <input type="text" id="agentKeyInput" value="f9ed99ac2ef5d6befe1a512628c6e13f"
+                        class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded transition shadow">
+                    Conectar ao Agente via WebRTC
+                </button>
+            </form>
+        </section>
+
+        <!-- DASHBOARD PRINCIPAL (OCULTO ATÉ CONECTAR) -->
+        <section id="dashboardSection" class="hidden space-y-6">
+
+            <!-- LISTA DE DISPOSITIVOS / PAINEL DE CONTROLE -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Card de Status do Dispositivo -->
+                <div class="bg-white p-5 rounded-xl shadow-md border border-gray-200 col-span-1">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">Dispositivo Conectado</h3>
+                    <div class="space-y-2 text-sm">
+                        <p><strong class="text-gray-600">Hostname:</strong> <span id="deviceHostname"
+                                class="font-mono text-indigo-600">Conectando...</span></p>
+                        <p><strong class="text-gray-600">Status WebRTC:</strong> <span id="webrtcState"
+                                class="px-2 py-0.5 text-xs rounded bg-yellow-100 text-yellow-800">Conectando</span></p>
+                        <p><strong class="text-gray-600">Última Atualização:</strong> <span id="lastUpdate">-</span></p>
+                        <p><strong class="text-gray-600">Apelido (Alias):</strong> <input type="text" id="agentAlias"
+                                value="Servidor Principal" class="border rounded px-2 py-0.5 text-xs w-32"></p>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t">
+                        <button id="btnRequestHistory"
+                            class="w-full text-xs bg-gray-800 text-white py-2 rounded hover:bg-black transition">
+                            Solicitar Fila de Snapshots Acumulados
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Painel de Envio de Configurações Remotas -->
+                <div class="bg-white p-5 rounded-xl shadow-md border border-gray-200 col-span-1 lg:col-span-2">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3 border-b pb-2">Configuração Remota do Agente</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                        <label class="flex items-center space-x-2"><input type="checkbox" id="cfgCpu" checked
+                                class="rounded text-indigo-600"> <span>CPU</span></label>
+                        <label class="flex items-center space-x-2"><input type="checkbox" id="cfgRam" checked
+                                class="rounded text-indigo-600"> <span>Memória RAM</span></label>
+                        <label class="flex items-center space-x-2"><input type="checkbox" id="cfgDisk" checked
+                                class="rounded text-indigo-600"> <span>Disco</span></label>
+                        <label class="flex items-center space-x-2"><input type="checkbox" id="cfgNetwork" checked
+                                class="rounded text-indigo-600"> <span>Rede</span></label>
+                        <label class="flex items-center space-x-2"><input type="checkbox" id="cfgBattery" checked
+                                class="rounded text-indigo-600"> <span>Bateria</span></label>
+                    </div>
+                    <div class="mt-4 flex items-center space-x-3">
+                        <label class="text-xs font-bold text-gray-600">Intervalo de Coleta (s):</label>
+                        <input type="number" id="cfgInterval" value="5" min="1" class="w-20 p-1 border rounded text-sm">
+                        <button id="btnSendConfig"
+                            class="bg-indigo-600 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-indigo-700">
+                            Enviar via DataChannel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTROLE DE TEMPORALIDADE (DROPDOWN) -->
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-md border">
+                <h3 class="text-xl font-bold text-gray-800">Visualização de Métricas</h3>
+                <div class="flex items-center space-x-3">
+                    <label for="timeAggregation" class="text-sm font-bold text-gray-700">Amostragem dos Gráficos
+                        (Média):</label>
+                    <!-- É muito fácil adicionar mais opções aqui: basta colocar uma tag <option> com o valor em minutos -->
+                    <select id="timeAggregation"
+                        class="border rounded p-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 font-semibold">
+                        <option value="1">1 Minuto</option>
+                        <option value="5">5 Minutos</option>
+                        <option value="10">10 Minutos</option>
+                        <option value="15">15 Minutos</option>
+                        <option value="30">30 Minutos</option>
+                        <option value="60">1 Hora</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- GRÁFICOS DAS MÉTRICAS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div class="bg-white p-4 rounded-xl shadow-md border">
+                    <h4 class="font-bold text-sm text-gray-700 mb-2">Uso de CPU (%)</h4>
+                    <div class="relative h-48"><canvas id="chartCpu"></canvas></div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-md border">
+                    <h4 class="font-bold text-sm text-gray-700 mb-2">Uso de Memória RAM (%)</h4>
+                    <div class="relative h-48"><canvas id="chartRam"></canvas></div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-md border">
+                    <h4 class="font-bold text-sm text-gray-700 mb-2">Uso de Disco (%)</h4>
+                    <div class="relative h-48"><canvas id="chartDisk"></canvas></div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-md border">
+                    <h4 class="font-bold text-sm text-gray-700 mb-2">Rede (Mbps)</h4>
+                    <div class="relative h-48"><canvas id="chartNetwork"></canvas></div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-md border">
+                    <h4 class="font-bold text-sm text-gray-700 mb-2">Nível de Bateria (%)</h4>
+                    <div class="relative h-48"><canvas id="chartBattery"></canvas></div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- SCRIPT DA APLICAÇÃO -->
+    <script>
+        let peerConnection = null;
+        let dataChannel = null;
+        let db = null;
+        let charts = {};
+        let processedCandidates = new Set();
+
+        // --- NOVAS VARIÁVEIS PARA O AGRUPAMENTO DE TEMPO ---
+        let rawSnapshots = []; // Armazena todo o histórico bruto de dados
+        let currentIntervalMinutes = 1; // Controla o tempo de amostragem atual
+
+        const firebaseConfig = {
+            "apiKey": "AIzaSyBERqnmCq9FcUS9V6FwK04Km_TbydXYuno",
+            "authDomain": "triad-monitor.firebaseapp.com",
+            "projectId": "triad-monitor",
+            "storageBucket": "triad-monitor.firebasestorage.app",
+            "messagingSenderId": "281590483811",
+            "appId": "1:281590483811:web:693b63a85fd0fdbe9d6156"
+        }
+
+        function initCharts() {
+            console.log("📊 Inicializando gráficos do Chart.js...");
+
+            const chartConfig = (label, color, isPercentage = false) => {
+                const yAxisConfig = { beginAtZero: true };
+                if (isPercentage) {
+                    yAxisConfig.max = 100;
+                }
+
+                return {
+                    type: 'line',
+                    data: { labels: [], datasets: [{ label: label, data: [], borderColor: color, backgroundColor: color + '22', fill: true, tension: 0.3 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: yAxisConfig } }
+                };
+            };
+
+            // Passamos 'true' para aplicar max:100 nos gráficos de % e 'false' para a Rede (Mbps)
+            charts.cpu = new Chart(document.getElementById('chartCpu'), chartConfig('CPU %', '#4f46e5', true));
+            charts.ram = new Chart(document.getElementById('chartRam'), chartConfig('RAM %', '#06b6d4', true));
+            charts.disk = new Chart(document.getElementById('chartDisk'), chartConfig('Disco %', '#10b981', true));
+            charts.network = new Chart(document.getElementById('chartNetwork'), chartConfig('Mbps', '#f59e0b', false));
+            charts.battery = new Chart(document.getElementById('chartBattery'), chartConfig('Bateria %', '#ec4899', true));
+        }
+
+        // --- NOVA LÓGICA DE CÁLCULO E RENDERIZAÇÃO DE GRÁFICOS ---
+
+        // Event Listener para quando o usuário mudar a opção do Dropdown
+        document.getElementById('timeAggregation').addEventListener('change', (e) => {
+            currentIntervalMinutes = parseInt(e.target.value);
+            renderCharts(); // Atualiza os gráficos imediatamente após a escolha
+        });
+
+        // Função auxiliar para calcular a mediana de um array de números
+        function getMedian(arr) {
+            if (!arr || arr.length === 0) return null;
+            // Ordena o array em ordem crescente
+            const sorted = [...arr].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+
+            // Se o tamanho for par, a mediana é a média dos dois números centrais
+            if (sorted.length % 2 === 0) {
+                return (sorted[mid - 1] + sorted[mid]) / 2;
+            }
+            // Se for ímpar, retorna o número central
+            return sorted[mid];
+        }
+
+        // Calcula mediana
+
+        // Função responsável por calcular a MEDIANA dos valores dentro dos intervalos
+        function getMedianAggregatedData() {
+            if (rawSnapshots.length === 0) return null;
+
+            const intervalMs = currentIntervalMinutes * 60; // Converter minutos para segundos
+            const grouped = {};
+
+            // Agrupa os dados no "balde" (bucket) de tempo correspondente
+            rawSnapshots.forEach(snap => {
+                // Arredonda o timestamp para baixo no múltiplo do intervalo escolhido
+                const bucketTime = Math.floor(snap.timestamp / intervalMs) * intervalMs;
+
+                if (!grouped[bucketTime]) {
+                    grouped[bucketTime] = {
+                        cpu: [],
+                        ram: [],
+                        disk: [],
+                        network: [],
+                        battery: []
+                    };
+                }
+
+                const m = snap.metrics;
+                // Guarda todos os valores para depois encontrar a mediana
+                if (m.cpu) grouped[bucketTime].cpu.push(m.cpu.percent);
+                if (m.ram) grouped[bucketTime].ram.push(m.ram.percent);
+                if (m.disk) grouped[bucketTime].disk.push(m.disk.percent);
+                if (m.network) grouped[bucketTime].network.push(m.network.mbps_download);
+                if (m.battery) grouped[bucketTime].battery.push(m.battery.percent);
+            });
+
+            // Constrói os arrays finais para os gráficos
+            const result = { labels: [], cpu: [], ram: [], disk: [], network: [], battery: [] };
+
+            Object.keys(grouped).sort().forEach(bucket => {
+                const b = grouped[bucket];
+                // Formata o bucket (que está em segundos) para horário HH:MM
+                const date = new Date(bucket * 1000);
+                result.labels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+
+                // Extrai a mediana de cada lista de métricas
+                result.cpu.push(getMedian(b.cpu));
+                result.ram.push(getMedian(b.ram));
+                result.disk.push(getMedian(b.disk));
+                result.network.push(getMedian(b.network));
+                result.battery.push(getMedian(b.battery));
+            });
+
+            // Retorna apenas os últimos 50 buckets para o gráfico não ficar extremamente espremido
+            return {
+                labels: result.labels.slice(-50),
+                cpu: result.cpu.slice(-50),
+                ram: result.ram.slice(-50),
+                disk: result.disk.slice(-50),
+                network: result.network.slice(-50),
+                battery: result.battery.slice(-50),
+            };
+        }
+
+        // Substitua por esta para calcular a média
+        function getMeanAggregatedData() {
+            if (rawSnapshots.length === 0) return null;
+
+            const intervalMs = currentIntervalMinutes * 60; // Converter minutos para segundos
+            const grouped = {};
+
+            // Agrupa os dados no "balde" (bucket) de tempo correspondente
+            rawSnapshots.forEach(snap => {
+                // Arredonda o timestamp para baixo no múltiplo do intervalo escolhido
+                const bucketTime = Math.floor(snap.timestamp / intervalMs) * intervalMs;
+
+                if (!grouped[bucketTime]) {
+                    grouped[bucketTime] = {
+                        cpu: { sum: 0, count: 0 },
+                        ram: { sum: 0, count: 0 },
+                        disk: { sum: 0, count: 0 },
+                        network: { sum: 0, count: 0 },
+                        battery: { sum: 0, count: 0 }
+                    };
+                }
+
+                const m = snap.metrics;
+                if (m.cpu) { grouped[bucketTime].cpu.sum += m.cpu.percent; grouped[bucketTime].cpu.count++; }
+                if (m.ram) { grouped[bucketTime].ram.sum += m.ram.percent; grouped[bucketTime].ram.count++; }
+                if (m.disk) { grouped[bucketTime].disk.sum += m.disk.percent; grouped[bucketTime].disk.count++; }
+                if (m.network) { grouped[bucketTime].network.sum += m.network.mbps_download; grouped[bucketTime].network.count++; }
+                if (m.battery) { grouped[bucketTime].battery.sum += m.battery.percent; grouped[bucketTime].battery.count++; }
+            });
+
+
+
+            // Constrói os arrays finais com as médias para os gráficos
+            const result = { labels: [], cpu: [], ram: [], disk: [], network: [], battery: [] };
+
+            Object.keys(grouped).sort().forEach(bucket => {
+                const b = grouped[bucket];
+                // Formata o bucket (que está em segundos) para horário HH:MM
+                const date = new Date(bucket * 1000);
+                result.labels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+
+                // Calcula a média aritmética (Soma / Quantidade). Se não tiver dado, insere null
+                result.cpu.push(b.cpu.count > 0 ? (b.cpu.sum / b.cpu.count) : null);
+                result.ram.push(b.ram.count > 0 ? (b.ram.sum / b.ram.count) : null);
+                result.disk.push(b.disk.count > 0 ? (b.disk.sum / b.disk.count) : null);
+                result.network.push(b.network.count > 0 ? (b.network.sum / b.network.count) : null);
+                result.battery.push(b.battery.count > 0 ? (b.battery.sum / b.battery.count) : null);
+            });
+
+            // Retorna apenas os últimos 50 buckets para o gráfico não ficar extremamente espremido
+            return {
+                labels: result.labels.slice(-50),
+                cpu: result.cpu.slice(-50),
+                ram: result.ram.slice(-50),
+                disk: result.disk.slice(-50),
+                network: result.network.slice(-50),
+                battery: result.battery.slice(-50),
+            };
+        }
+
+
+        // Função que aplica os dados agregados (médias) diretamente aos objetos do Chart.js
+        function renderCharts() {
+            //const aggregated = getMedianAggregatedData();
+            const aggregated = getMeanAggregatedData();
+            if (!aggregated) return;
+
+            charts.cpu.data.labels = aggregated.labels;
+            charts.cpu.data.datasets[0].data = aggregated.cpu;
+            charts.cpu.update();
+
+            charts.ram.data.labels = aggregated.labels;
+            charts.ram.data.datasets[0].data = aggregated.ram;
+            charts.ram.update();
+
+            charts.disk.data.labels = aggregated.labels;
+            charts.disk.data.datasets[0].data = aggregated.disk;
+            charts.disk.update();
+
+            charts.network.data.labels = aggregated.labels;
+            charts.network.data.datasets[0].data = aggregated.network;
+            charts.network.update();
+
+            charts.battery.data.labels = aggregated.labels;
+            charts.battery.data.datasets[0].data = aggregated.battery;
+            charts.battery.update();
+        }
+
+        function handleSnapshot(snapshot) {
+            console.log("📈 Processando Snapshot de Telemetria:", snapshot);
+            const date = new Date(snapshot.timestamp * 1000);
+
+            document.getElementById('deviceHostname').innerText = snapshot.hostname || 'Desconhecido';
+            document.getElementById('lastUpdate').innerText = date.toLocaleTimeString();
+
+            // Salva o snapshot no histórico bruto
+            rawSnapshots.push(snapshot);
+
+            // Recalcula as médias e atualiza os gráficos com base no dropdown atual
+            renderCharts();
+        }
+
+        // Inicialização do WebRTC & Firebase Signaling
+        document.getElementById('connectionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log("🚀 Formulário submetido. Iniciando processo de conexão...");
+
+            const adminId = document.getElementById('adminIdInput').value.trim();
+            const agentKey = document.getElementById('agentKeyInput').value.trim();
+
+            if (!adminId || !agentKey) {
+                console.warn("⚠️ Admin ID ou Agent Key estão vazios.");
+                alert('Preencha o Admin ID e a Chave do Agente!');
+                return;
+            }
+
+
+
+
+            try {
+                console.log("🔥 Inicializando SDK do Firebase...");
+                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                console.log("✅ Firestore conectado com sucesso.");
+            } catch (err) {
+                console.error("❌ Erro na inicialização do Firebase:", err.message);
+                alert('Erro ao inicializar Firebase: ' + err.message);
+                return;
+            }
+
+            // Atualizar UI
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('displayAdminId').innerText = `Admin: ${adminId}`;
+
+            initCharts();
+
+            const roomId = `${adminId}_${agentKey}`;
+            const roomRef = db.collection('signaling_rooms').doc(roomId);
+            console.log(`🏠 Sala de sinalização Firestore configurada: "signaling_rooms/${roomId}"`);
+
+            console.log("🌐 Criando RTCPeerConnection (STUN: stun.l.google.com:19302)...");
+            peerConnection = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            });
+
+            // LOGS DE MUDANÇA DE ESTADO DO WEBRTC
+            peerConnection.onconnectionstatechange = () => {
+                console.log(`🔄 WebRTC Connection State alterado para: %c${peerConnection.connectionState}`, "font-weight: bold; color: blue;");
+                document.getElementById('webrtcState').innerText = peerConnection.connectionState;
+            };
+
+            // Criar DataChannel
+            console.log("💬 Criando DataChannel 'telemetry'...");
+            dataChannel = peerConnection.createDataChannel('telemetry');
+
+            dataChannel.onopen = () => {
+                console.log("%c🟢 DataChannel ABERTO com sucesso!", "background: green; color: white; font-weight: bold; padding: 2px 5px;");
+                document.getElementById('webrtcState').innerText = 'Conectado (DataChannel)';
+                document.getElementById('webrtcState').className = 'px-2 py-0.5 text-xs rounded bg-green-100 text-green-800';
+
+                dataChannel.send('REQUEST_ALL_SNAPSHOTS');
+            };
+
+            dataChannel.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (Array.isArray(data)) {
+                        data.forEach(snapshot => handleSnapshot(snapshot));
+                    } else if (data.timestamp) {
+                        handleSnapshot(data);
+                    }
+                } catch (err) {
+                    console.log('ℹ️ Mensagem recebida em texto simples:', event.data);
+                }
+            };
+
+            // ICE Candidates locais
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    roomRef.update({
+                        offerCandidates: firebase.firestore.FieldValue.arrayUnion(event.candidate.toJSON())
+                    }).catch(err => console.error("❌ Erro ao salvar offerCandidate:", err));
+                }
+            };
+
+            // Criar e definir Oferta SDP
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+
+            await roomRef.set({
+                offer: { type: offer.type, sdp: offer.sdp },
+                status: 'offered',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Escutar por respostas
+            roomRef.onSnapshot(async (snapshot) => {
+                const data = snapshot.data();
+                if (!data) return;
+
+                if (data.answer && !peerConnection.currentRemoteDescription) {
+                    const answer = new RTCSessionDescription(data.answer);
+                    await peerConnection.setRemoteDescription(answer);
+                }
+
+                if (data.answerCandidates && Array.isArray(data.answerCandidates)) {
+                    for (const cand of data.answerCandidates) {
+                        const candKey = JSON.stringify(cand);
+                        if (!processedCandidates.has(candKey)) {
+                            processedCandidates.add(candKey);
+                            try {
+                                await peerConnection.addIceCandidate(new RTCIceCandidate(cand));
+                            } catch (e) {
+                                console.error("❌ Erro ao adicionar Remote Candidate:", e);
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        // Botão para Re-solicitar Histórico Acumulado
+        document.getElementById('btnRequestHistory').addEventListener('click', () => {
+            if (dataChannel && dataChannel.readyState === 'open') {
+                dataChannel.send('REQUEST_ALL_SNAPSHOTS');
+            }
+        });
+
+        // Botão para Enviar Nova Configuração
+        document.getElementById('btnSendConfig').addEventListener('click', () => {
+            if (dataChannel && dataChannel.readyState === 'open') {
+                const configPayload = {
+                    action: "UPDATE_CONFIG",
+                    interval_seconds: parseInt(document.getElementById('cfgInterval').value),
+                    metrics_enabled: {
+                        cpu: document.getElementById('cfgCpu').checked,
+                        ram: document.getElementById('cfgRam').checked,
+                        disk: document.getElementById('cfgDisk').checked,
+                        network: document.getElementById('cfgNetwork').checked,
+                        battery: document.getElementById('cfgBattery').checked
+                    }
+                };
+                dataChannel.send(JSON.stringify(configPayload));
+                alert('Configuração enviada ao agente via DataChannel!');
+            }
+        });
+    </script>
+</body>
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAhnGM-hWi9Jr3EXt1Wbt5fd5VMHvhBOZ8",
+        authDomain: "triad-weba.firebaseapp.com",
+        projectId: "triad-weba",
+        storageBucket: "triad-weba.firebasestorage.app",
+        messagingSenderId: "1017872632899",
+        appId: "1:1017872632899:web:c766994f49f4d08ac198f6"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+</script>
+
+</html>
